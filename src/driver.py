@@ -1,13 +1,13 @@
 from sensors.motor import *
 from sensors.colorsensor import *
 
-
 class Driver:
 
     # construct objects for the Motor, ColorSensor
     def __init__(self):
         self.motor_control = Motor()
         self.color_sensor = ColorSensor()
+
 
     # drive forward for a set time
     def move_straight(self, time):

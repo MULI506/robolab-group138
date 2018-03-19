@@ -2,6 +2,7 @@ from sensors.motor import *
 from sensors.colorsensor import *
 from sounds import *
 
+
 class Driver:
 
     # construct objects for the Motor, ColorSensor
@@ -9,7 +10,6 @@ class Driver:
         self.motor_control = Motor()
         self.color_sensor = ColorSensor()
         self.sounds = Sounds()
-
 
     # drive forward for a set time
     def move_straight(self, time):

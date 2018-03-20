@@ -27,14 +27,16 @@ class Motor:
 
     # stops all motors
     def stop(self):
-        self.motor_left.stop(stop_action='brake')
-        self.motor_right.stop(stop_action='brake')
+        self.motor_left.stop()
+        self.motor_right.stop()
 
+    # unlock wheels
     def free_motor(self):
         self.motor_left.stop(stop_action='coast')
         self.motor_right.stop(stop_action='coast')
 
-    def lock_motor(self):
+    # lock wheels, set to brake
+    def brake_motor(self):
         self.motor_left.stop(stop_action='brake')
         self.motor_right.stop(stop_action='brake')
 

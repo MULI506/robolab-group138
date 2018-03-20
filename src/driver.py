@@ -1,9 +1,11 @@
 from sensors.motor import *
 from sensors.colorsensor import *
 from sensors.ursensor import *
+from odometry import *
 from sounds import *
 
 import time
+import math
 
 class Driver:
 
@@ -12,6 +14,7 @@ class Driver:
         self.motor_control = Motor()
         self.color_sensor = ColorSensor()
         self.sounds = Sounds()
+        self.odo = Odometry()
         self.us_sensor = UsSensor()
 
     # drive forward for a set time
@@ -238,3 +241,48 @@ class Driver:
 
         #self.motor_control.move_left_right(time_t, speed_left, speed_right)
         self.motor_control.move_lr_steady(speed_left, speed_right)
+
+    # test odometry data for a single movement
+    def odometry_test_simple(self, axis):
+        #self.motor_control.forward(time, speed)
+        #self.motor_control.move_left_right(1000, 300, 100)
+        self.motor_control.free_motor()
+        self.motor_control.reset_position()
+        rotation = 0
+        print("Start WheelPos: {}".format(self.motor_control.get_position()))
+        print("Start Rotation: {}".format(rotation))
+
+        time.sleep(6)
+
+        wheel_position = self.motor_control.get_position()
+
+        diff_left = wheel_position[0]
+        diff_right = wheel_position[1]
+        #print("left: {}, right: {}".format(diff_left, diff_right))
+
+        odo_data = self.odo.calculate_new_position(wheel_position, rotation, axis)
+        position = odo_data[0]
+        rotation = odo_data[1]
+        print("New WheelPos: {}".format(wheel_position))
+        print("New coordinates: {}".format(position))
+        print("New rotation: {}".format(rotation))
+        self.motor_control.lock_motor()
+
+    # test odometry data for repetitive small movements
+    def odometry_test_con(self, axis, diameter, sleeptime):
+        self.odo.set_step_distance(diameter)
+        self.motor_control.free_motor()
+        self.motor_control.reset_position()
+        rotation = 0
+        position_robot = (0, 0)
+        for i in range(0, 2000):
+            wheel_position = self.motor_control.get_position()
+            self.motor_control.reset_position()
+            odo_data = self.odo.calculate_new_position(wheel_position, position_robot, math.radians(rotation), axis)
+            position_robot = odo_data[0]
+            rotation = odo_data[1]
+            if i % 10 == 0:
+                print("position: ({},{}), rotation: {}".format(int(position_robot[0]), int(position_robot[1]), int(rotation)))
+            time.sleep(sleeptime)
+
+

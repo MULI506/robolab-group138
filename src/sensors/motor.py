@@ -14,13 +14,27 @@ class Motor:
     # 1 parameter -> time: how long to drive in ms
     def forward(self, time):
         speed = 360
-        self.motor_left.run_timed(time_sp=time, speed_sp=self.speed)
-        self.motor_right.run_timed(time_sp=time, speed_sp=self.speed)
+        self.motor_left.run_timed(time_sp=time, speed_sp=speed)
+        self.motor_right.run_timed(time_sp=time, speed_sp=speed)
+        self.motor_left.wait_while('running')
+        self.motor_right.wait_while('running')
+
+    def forward(self, time, speed):
+        self.motor_left.run_timed(time_sp=time, speed_sp=speed)
+        self.motor_right.run_timed(time_sp=time, speed_sp=speed)
         self.motor_left.wait_while('running')
         self.motor_right.wait_while('running')
 
     # stops all motors
     def stop(self):
+        self.motor_left.stop(stop_action='brake')
+        self.motor_right.stop(stop_action='brake')
+
+    def free_motor(self):
+        self.motor_left.stop(stop_action='coast')
+        self.motor_right.stop(stop_action='coast')
+
+    def lock_motor(self):
         self.motor_left.stop(stop_action='brake')
         self.motor_right.stop(stop_action='brake')
 

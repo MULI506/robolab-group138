@@ -29,7 +29,7 @@ class Driver:
     def move_on_node(self):
         # robot has to move 6cm forward - about 125 degree per wheel
         time = 1000
-        speed = 120
+        speed = 130
         self.motor_control.forward(time, speed)
 
     def full_rotation(self):
@@ -63,6 +63,18 @@ class Driver:
 
     def stop_robot(self):
         self.motor_control.stop()
+
+    # rotate directly on the line to quantize direction
+    def hug_line(self):
+        self.motor_control.move_left_right(500, 100, -100)
+        self.motor_control.wait()
+        while True:
+            brightness = self.color_sensor.get_color()
+            self.motor_control.move_lr_steady(-60, 60)
+            if brightness < 150:
+                self.stop_robot()
+                break
+
 
     # p controller returns modifier for speed reduction during turns
     def p_control(self, brightness):
@@ -320,7 +332,7 @@ class Driver:
 
         self.path_status = 'free'
 
-        # later input values from current location
+        # input values from current location
         self.rotation_current = start_rotation
         self.position_current = start_position
         # reset odometry data
@@ -361,43 +373,68 @@ class Driver:
         time.sleep(1)
         self.move_on_node()
         time.sleep(2)
-        self.detect_lines(0)
+        self.detect_lines(self.rotation_current)
 
     # turns on the spot at a node and returns detected lines
-    # return value -> Boolean in List: (North_Line, East_Line, South_Line, West_Line)
+    # return values (new_direction, found_lines)
+    # found_lines: Boolean in List: (North_Line, East_Line, South_Line, West_Line)
     def detect_lines(self, rot_in):
+        # temporarily modifies distance-value for wheel separation, better results on turn
+        self.odo.set_axis_separation(85)
         # initialize List for available directions
         found_lines = [False, False, False, False]
+
         # the direction the robot came from as int: North=0, West=1, South=2, East=3, Error=-1
         #arrived_from_direction = self.odo.guess_direction_int(self.odo.limit_rotation_degree(rot_in+180))
         # sets arrived line to true
         #found_lines[arrived_from_direction] = True
 
+        # initialize values
         turn_speed = 300
-        self.rotation_current = rot_in+1
-        self.odo.set_current_rotation(self.rotation_current)
+        rotation_start = rot_in
+        rotation_turned = 1
+        self.motor_control.reset_position()
+        self.odo.set_current_rotation(rotation_turned)
         time.sleep(1)
+
+        # start movement
         self.motor_control.move_lr_steady(-turn_speed, turn_speed)
         while True:
+            # calculates rotation since start and reads brightness
             self.odometry_step()
-            self.rotation_current = self.odo.get_current_rotation()
+            rotation_turned = self.odo.get_current_rotation()
             brightness = self.color_sensor.get_color()
-            if self.rotation_current > 300:
+            # initiates end after almost whole rotation
+            if rotation_turned > 320:
                 print("ENDING")
+                # continues odometry in the white
                 while brightness > 150:
                     self.odometry_step()
-                    self.rotation_current = self.odo.get_current_rotation()
                     brightness = self.color_sensor.get_color()
-                print(self.odo.get_current_rotation())
+                # when black is found, robot is stopped and final direction calculated
                 self.stop_robot()
+                rotation_turned = self.odo.get_current_rotation()
+                print(rotation_turned)
+                rotation_end = self.odo.limit_rotation_degree(rotation_start+rotation_turned)
+                print(rotation_end)
                 break
+            # if line (black) is found, value for current direction is set to True
             elif brightness < 120:
-                direction_found = self.odo.guess_direction_int(self.rotation_current)
+                direction_found = self.odo.guess_direction_int(self.odo.limit_rotation_degree(rotation_start+rotation_turned))
                 found_lines[direction_found] = True
 
-        # display lines
-        print('Detected: North={}, West={}, South={}, East={}'.format(found_lines[0], found_lines[1], found_lines[2], found_lines[3]))
-        return found_lines
+        # display found lines
+        print('Detected: North={}, West={}, South={}, East={}'.format(found_lines[0],
+                                                                      found_lines[1],
+                                                                      found_lines[2],
+                                                                      found_lines[3]))
+        # resets wheel separation for path-following
+        self.odo.set_axis_separation(105)
+        self.hug_line()
+        # creates return value using final rotation and list of found lines
+        result = (int(rotation_end), found_lines)
+        print(result)
+        return result
 
 
     """"

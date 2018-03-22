@@ -1,9 +1,10 @@
 from driver import *
 from planet import *
-from communication import *
+#from communication import *
+import time
 
 
-""""
+"""
 PROJECT STRUCTURE:
 Main-Control: explorer
 explorer <-> communication
@@ -16,7 +17,7 @@ driver <- colorsensor
 driver <- ursensor
 
 driver <- sounds
-""""
+"""""
 
 
 class Explorer:
@@ -31,6 +32,8 @@ class Explorer:
     # complete exploration_process
     def explore_offline(self):
         self.start_exploration(False)
+        self.follow_path_add()
+        self.show_all_paths()
 
     # enters planet and sets initial coordinate
     def start_exploration(self, online):
@@ -60,6 +63,28 @@ class Explorer:
         # ignores the entry path to the planet, sets found path in South to False
         detected_lines[2] = False
 
+        print("Starting Position: {}, Current Rotation: {}".format(self.position_known, self.direction_known))
+
+    #
+    def follow_path_add(self):
+        new_position = self.drive.follow_line_complete(self.position_known, self.direction_known)
+        print(new_position)
+        time.sleep(1)
+
+        new_coordinate = new_position[0]
+        new_direction = self.quantize_direction(new_position[1])
+
+        self.planet.add_new_coordinate(new_coordinate)
+        self.planet.add_path((self.position_known, self.convert_direction(self.direction_known)),
+                             (new_coordinate, self.convert_direction(new_direction)), 1)
+
+    # prints all saved paths
+    def show_all_paths(self):
+        self.planet.print_paths()
+
+    #def turn_to_direction(self, direction):
+    #    pass
+
 
     # resets the direction according to the current rotation value
     def quantize_direction(self, rotation):
@@ -78,6 +103,21 @@ class Explorer:
         # ERROR
         else:
             return -1
+
+    # resets the direction according to the current rotation value
+    def convert_direction(self, rotation):
+        # NORTH
+        if rotation == 0:
+            return Direction.NORTH
+        elif rotation == 90:
+            return Direction.WEST
+        elif rotation == 180:
+            return Direction.SOUTH
+        elif rotation == 270:
+            return Direction.EAST
+        else:
+            return 'ERROR'
+
 
     def test_paths(self):
         self.planet.add_path(((0, 0), Direction.NORTH), ((1, 1), Direction.SOUTH), 1)

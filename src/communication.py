@@ -43,20 +43,20 @@ class Communication:
             # seperates message
             msg.split(" ")
             # assigins message parts variables
-        ack, planet, int_coord = msg.split(" ")  # ACK, Name planet, initial coordinates
+        ack, planet_name, int_coord = msg.split(" ")  # ACK, Name planet, initial coordinates
         coordinate_list = [int_coord]
-
-        assert isinstance(planet, object)
-        self.subscribe(planet, qos=1)
+        # %s makes planet_name part of message
+        self.client.subscribe('planet/%s', qos=1) % planet_name
         #takes submitted location and sets it as starting place
         current_position = int_coord
         #need to set up lists still
     def node(self, current_position=None): #need to create that still
         #checks status of path
         if current_position in coordinate_list
-            send_message('planet', "SYN path",current_position,current_position,De "blocked")
+
+            self.send_message('planet/%s', "SYN path",current_position,current_position,De "blocked") % planet_name
         else:
-            send_message('planet', "SYN path",previous_position,,Ds,current_position,De "free")
+            self.send_message('planet/%s', "SYN path",previous_position,,Ds,current_position,De "free") % planet_name
             coordinate_list.append(current_position)
         self.on_message
             add_path #function in planet.py, not set up yet #might not be needed here
@@ -64,6 +64,7 @@ class Communication:
                 node_msg.split(" ")
                 a,target,c = node_msg.split(" ") #rename variables later
                 if target == "target" and c in path_list #<-- not a thing yet
-                    '''move to c''' #need to figure out how
+                    '''move to c''' #need to figure out how #insert some function here I guess
                 else '''save c'''   #^
+
 

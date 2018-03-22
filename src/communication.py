@@ -28,7 +28,7 @@ class Communication:
     # Example
     def send_message(self, topic, message):
         """ Sends given message to specified channel """
-        self.client.publish(topic, message, 1, False)
+        self.client.publish(topic, message, 1, False) 
         pass
 
     def landing(self):
@@ -52,6 +52,7 @@ class Communication:
         current_position = int_coord
         #need to set up lists still
     def node(self, current_position=None): #need to create that still
+        #checks status of path
         if current_position in coordinate_list
             send_message('planet', "SYN path",current_position,current_position,De "blocked")
         else:

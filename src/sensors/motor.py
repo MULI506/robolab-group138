@@ -61,8 +61,8 @@ class Motor:
 
     # runs the motors without timed runtime
     def move_lr_steady(self, speed_left, speed_right):
-        self.motor_left.run_forever(speed_sp = speed_left)
-        self.motor_right.run_forever(speed_sp = speed_right)
+        self.motor_left.run_forever(speed_sp=speed_left)
+        self.motor_right.run_forever(speed_sp=speed_right)
 
     def wait(self):
         self.motor_left.wait_while('running')

@@ -9,11 +9,11 @@ class Odometry():
     def __init__(self):
         # setup values for position and rotation
         self.current_position = (0, 0)
-        self.current_rotation = 0
+        self.current_rotation = 0  # in degrees
 
         # setup wheel diameter and wheel separation
         self.wheel_dia = 55
-        self.wheel_axis = 110  #measured middle: 120mm
+        self.wheel_axis = 100  #measured middle: 120mm, 105-110 better
         # calculate how far the wheel moves each degree
         self.step_distance = self.wheel_dia * math.pi / 360
 
@@ -32,10 +32,14 @@ class Odometry():
     def set_step_distance(self, wheel_diameter):
         self.step_distance = wheel_diameter * math.pi / 360
 
+    def set_axis_separation(self, length):
+        self.wheel_axis = length
+
     # keep the rotation between 0 and 360 degrees
     def limit_rotation_degree(self, rot_deg):
         return rot_deg % 360
 
+    # returns direction as string
     def guess_direction(self, rotation):
         if 0 <= rotation < 45 or rotation >= 315:
             return 'NORTH'
@@ -47,6 +51,24 @@ class Odometry():
             return 'EAST'
         else:
             return 'ERROR'
+
+    # returns direction as number to use for list-index
+    def guess_direction_int(self, rotation):
+        # NORTH
+        if 0 <= rotation < 45 or rotation >= 315:
+            return 0
+        # WEST
+        elif 45 <= rotation < 135:
+            return 1
+        # SOUTH
+        elif 135 <= rotation < 225:
+            return 2
+        # EAST
+        elif 225 <= rotation < 315:
+            return 3
+        # ERROR
+        else:
+            return -1
 
     # guess the new coordinate and rotation/direction of the robot
     def guess_position(self, coordinate_old):
@@ -67,7 +89,7 @@ class Odometry():
 
         # ROTATION
         rot_guess = self.guess_direction(self.current_rotation)
-        print("rotation: measured {}, guessed {}".format(int(self.current_rotation), rot_guess))
+        #print("rotation: measured {}, guessed {}".format(int(self.current_rotation), rot_guess))
 
         position_guess = (coordinate_guess, rot_guess)
         return position_guess

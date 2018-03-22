@@ -20,6 +20,22 @@ class ColorSensor:
         print(self.colorS.bin_data())
         return self.colorS.bin_data("hhh")
 
+    # returns color
+    # if red or blue -> returns color as string "red" or "blue"
+    # if black or white -> returns color as average brightness
+    def get_color(self):
+        rgb = self.colorS.bin_data("hhh")
+        red = rgb[0]
+        green = rgb[1]
+        blue = rgb[2]
+
+        if red > 150 and green < 100 and blue < 100:
+            return 'red'
+        if red < 100 and blue > 100:
+            return 'blue'
+        else:
+            return self.get_avg()
+
     # returns the current brightness value disregarding specific colors
     def get_avg(self):
         rgb = self.colorS.bin_data("hhh")

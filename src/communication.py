@@ -20,8 +20,8 @@ class Communication:
 
     # THIS FUNCTIONS SIGNATURE MUST NOT BE CHANGED
     def on_message(self, client, data, message):
-        print('message with topic ""'.format(message.topic))
-        print('message was ""'.format(message.payload.decode('utf-8')))
+        print('message with topic "{}"'.format(message.topic))
+        print('message was "{}"'.format(message.payload.decode('utf-8')))
         """ Handles the callback if any message arrived """
         pass
 
@@ -35,7 +35,7 @@ class Communication:
         self.username_password_set('138', password='')  # dont know what pass has to be   #whole thing might be wrong here
         self.connect('robolab.info.tu-dresden.de', port=8883)  # server used to communicate
         self.subscribe('explorer/138', qos=1)  # qos1-> message arrives at least once
-
+        client.loop_start() # I need to look at that again, also for the other parts
         send_message('explorer/138', "SYN ready")
         self.on_message
         # decodes message and creates variable
@@ -49,22 +49,28 @@ class Communication:
         self.client.subscribe('planet/%s', qos=1) % planet_name
         #takes submitted location and sets it as starting place
         current_position = int_coord
+        client.loop_stop()
         #need to set up lists still
     def node(self, current_position=None): #need to create that still
         #checks status of path
-        if current_position in coordinate_list
-
+        if current_position in coordinate_list:
             self.send_message('planet/%s', "SYN path",current_position,current_position,De "blocked") % planet_name
-        else:
-            self.send_message('planet/%s', "SYN path",previous_position,,Ds,current_position,De "free") % planet_name
-            coordinate_list.append(current_position)
+            else:
+                self.send_message('planet/%s', "SYN path",previous_position,,Ds,current_position,De "free") % planet_name
+                coordinate_list.append(current_position)
         self.on_message
             add_path #function in planet.py, not set up yet #might not be needed here
-                node_msg = message.payload
-                node_msg.split(" ")
-                a,target,c = node_msg.split(" ") #rename variables later
-                if target == "target" and c in path_list #<-- not a thing yet
-                    '''move to c''' #need to figure out how #insert some function here I guess
-                else '''save c'''   #^
+            node_msg = message.payload
+            node_msg.split(" ")
+            a,target,c = node_msg.split(" ") #rename variables later
+                if target == "target" and c in path_list: #<-- not a thing yet
+                    '''move to c''' #need to figure out how
+                else: '''save c'''   #^
+    #if target = current_position
+    def target_reached(self):
+        self.send_message('explorer/138' "SYN target reached")
+    #no paths left
+    def explore_com(self):
+        self.send_message('explorer/138' "SYN exploration completed!")
 
 

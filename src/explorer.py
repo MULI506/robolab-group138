@@ -1,5 +1,6 @@
 from driver import *
 from planet import *
+from sounds import *
 #from communication import *
 import time
 
@@ -62,43 +63,50 @@ class Explorer:
         detected_lines = line_result[1]
         # ignores the entry path to the planet, sets found path in South to False
         detected_lines[2] = False
-
-        print(detected_lines)
-
+        self.planet.add_detected_paths(self.position_known, detected_lines)
         print("Starting Position: {}, Current Rotation: {}".format(self.position_known, self.direction_known))
 
     # follows a path from start to finish and adds the path to the path data
     def follow_path_add(self):
+        # follows the line and gets the data back (end_coordinate, end_direction, path_status)
         path_result = self.drive.follow_line_complete(self.position_known, self.direction_known)
         time.sleep(1)
-        print(path_result)
 
         new_coordinate = path_result[0]
         new_direction = self.quantize_direction(path_result[1])
 
+        # checks path status and sets weight accordingly
         path_status = path_result[2]
         if path_status == 'free':
+            # rough weight guess according to coordination change
             weight = int((math.fabs(self.position_known[0]-new_coordinate[0])+math.fabs(self.position_known[1]-new_coordinate[1])))
         else:
             weight = -1
 
+        # calculates direction, where the robot came from
         direction_arrived = (new_direction + 180) % 360
         print("NEW: coordinate: {}, direction: {}, direction arrived: {}, path status: {}".format(new_coordinate, new_direction, direction_arrived, path_status))
 
-
+        # adds the path to the data structure
         self.planet.add_path((self.position_known, self.convert_direction(self.direction_known)),
                              (new_coordinate, self.convert_direction(direction_arrived)), weight)
-
+        # set current known position and direction to new values
         self.position_known = new_coordinate
         self.direction_known = new_direction
 
     # scan the outgoing paths at a node, if they are not scanned yet
     def scan_paths(self):
+        # get data for available paths
         open_path_data = self.planet.get_open_paths()
+        # check if coordinate is already saved
         if self.position_known not in list(open_path_data.keys()):
+            # if it's not saved, scan the node for paths
             scan_data = self.drive.detect_lines(self.direction_known)
+            # set current direction to the final direction after scan
             self.direction_known = self.quantize_direction(scan_data[0])
+            # gets data for scanned paths
             detected_paths = scan_data[1]
+            # adds scanned paths to data structure
             self.planet.add_detected_paths(self.position_known, detected_paths)
             print("ADDED")
         print("coord: {}, detected: {}".format(self.position_known, self.planet.get_open_paths().get(self.position_known)))
@@ -106,6 +114,10 @@ class Explorer:
     # prints all saved paths
     def show_all_paths(self):
         self.planet.print_paths()
+
+    # show all data for available paths for each node
+    def show_all_detected(self):
+        print(self.planet.get_open_paths())
 
     # turns to a given direction according to starting direction
     def turn_to_direction(self, new_direction):
@@ -148,7 +160,7 @@ class Explorer:
         else:
             return 'ERROR'
 
-
+    # test function for path saving and output
     def test_paths(self):
         self.planet.add_path(((0, 0), Direction.NORTH), ((1, 1), Direction.SOUTH), 1)
         self.planet.add_path(((0, 0), Direction.NORTH), ((1, 1), Direction.SOUTH), 1)
@@ -159,5 +171,3 @@ class Explorer:
         self.planet.print_paths()
         print("############")
         self.planet.get_paths()
-
-

@@ -21,6 +21,9 @@ class Sounds:
     def say_obstacle(self):
         self.sounds.speak("rrrr").wait()
 
+    def say_obstacle_mel(self):
+        self.sounds.tone([(550, 50, 20), (500, 50, 20), (450, 50, 20), (400, 50, 20)]).wait()
+
     def say_down(self):
         self.sounds.tone([(550, 150, 50), (500, 150, 50), (450, 150, 50), (400, 150, 50),
                           (350, 150, 50), (300, 150, 50), (250, 150, 50), (200, 150, 50),

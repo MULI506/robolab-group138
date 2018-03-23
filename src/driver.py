@@ -7,6 +7,7 @@ from sounds import *
 import time
 import math
 
+
 class Driver:
 
     # construct objects for the Motor, ColorSensor
@@ -134,7 +135,6 @@ class Driver:
         #rotation = odo_data[1]
         #if i % 10 == 0:
         #   print("position: ({},{}), rotation: {}".format(int(position_robot[0]), int(position_robot[1]), int(rotation)))
-        #time.sleep(sleeptime)
 
     # follows line from start to finish, considers obstacles
     def follow_line_complete(self, start_position, start_rotation):
@@ -184,12 +184,14 @@ class Driver:
         self.position_current = new_position[0]
         self.rotation_current = self.odo.get_current_rotation()
         direction_guess = new_position[1]
-        position_result = (new_position, self.rotation_current)
+        print("direction_guess: {}".format(direction_guess))
+        path_result = (self.position_current, self.rotation_current, self.path_status)
+        print("new_position: {}, path_result: {}".format(new_position, path_result))
 
         print("rotation: measured {}, guessed {}".format(int(self.rotation_current), self.odo.guess_direction(direction_guess)))
         time.sleep(0.05)
         self.move_on_node()
-        return position_result
+        return path_result
 
     # turns on the spot at a node and returns detected lines
     # return values (new_direction, found_lines)
@@ -245,7 +247,7 @@ class Driver:
                                                                       found_lines[2],
                                                                       found_lines[3]))
         # resets wheel separation for path-following
-        self.odo.set_axis_separation(105)
+        self.odo.set_axis_separation(100)
         self.hug_line()
         # creates return value using final rotation and list of found lines
         result = (int(rotation_end), found_lines)

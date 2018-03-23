@@ -131,13 +131,55 @@ class Planet:
                 return True
         return False
 
+    # if coordinate isn't part of detected-path-data, then add it
+    def add_detected_paths(self, coordinate, detected_paths):
+        if coordinate in list(self.open_paths.keys()):
+                return
+        self.open_paths[coordinate] = detected_paths
+
+    # returns data of all directions per node, left to explore
+    def get_open_paths(self):
+        return self.open_paths
+
+    # sets a direction at a coordinate to false, which marks it as explored
+    def close_open_path(self, coordinate, direction):
+        # sets correct index value for the current direction
+        if direction == 0:
+            index = 0
+        elif direction == 90:
+            index = 1
+        elif direction == 180:
+            index = 2
+        else:
+            index = 3
+        # sets the boolean value for the direction to False
+        self.open_paths[coordinate][index] = False
+
     # print out all paths
     def print_paths(self):
         print("PATHS")
         for coordinate in self.path_data.keys():
             print("{}:".format(coordinate))
             for path in self.path_data.get(coordinate):
-                print("    Start:{}, {} | End:{}, {} | Weight: {}".format(path[0], path[1], path[2], path[3], path[4]))
+                dir = path[1]
+                if dir == 0:
+                    dir = 'NORTH'
+                elif dir == 90:
+                    dir = 'EAST'
+                elif dir == 180:
+                    dir = 'SOUTH'
+                else:
+                    dir = 'WEST'
+                dir_end = path[3]
+                if dir_end == 0:
+                    dir_end = 'NORTH'
+                elif dir_end == 90:
+                    dir_end = 'EAST'
+                elif dir_end == 180:
+                    dir_end = 'SOUTH'
+                else:
+                    dir_end = 'WEST'
+                print("    Start:{}, {} | End:{}, {} | Weight: {}".format(path[0], dir, path[2], dir_end, path[4]))
 
     # test Direction class
     def direction_test(self, direc: Direction):

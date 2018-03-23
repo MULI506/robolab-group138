@@ -63,33 +63,59 @@ class Explorer:
         # ignores the entry path to the planet, sets found path in South to False
         detected_lines[2] = False
 
+        print(detected_lines)
+
         print("Starting Position: {}, Current Rotation: {}".format(self.position_known, self.direction_known))
 
-    #
+    # follows a path from start to finish and adds the path to the path data
     def follow_path_add(self):
-        new_position = self.drive.follow_line_complete(self.position_known, self.direction_known)
-        print(new_position)
+        path_result = self.drive.follow_line_complete(self.position_known, self.direction_known)
         time.sleep(1)
+        print(path_result)
 
-        new_coordinate = new_position[0]
-        new_direction = self.quantize_direction(new_position[1])
+        new_coordinate = path_result[0]
+        new_direction = self.quantize_direction(path_result[1])
 
-        self.planet.add_new_coordinate(new_coordinate)
+        path_status = path_result[2]
+        if path_status == 'free':
+            weight = int((math.fabs(self.position_known[0]-new_coordinate[0])+math.fabs(self.position_known[1]-new_coordinate[1])))
+        else:
+            weight = -1
+
+        direction_arrived = (new_direction + 180) % 360
+        print("NEW: coordinate: {}, direction: {}, direction arrived: {}, path status: {}".format(new_coordinate, new_direction, direction_arrived, path_status))
+
+
         self.planet.add_path((self.position_known, self.convert_direction(self.direction_known)),
-                             (new_coordinate, self.convert_direction(new_direction)), 1)
+                             (new_coordinate, self.convert_direction(direction_arrived)), weight)
+
+        self.position_known = new_coordinate
+        self.direction_known = new_direction
+
+    # scan the outgoing paths at a node, if they are not scanned yet
+    def scan_paths(self):
+        open_path_data = self.planet.get_open_paths()
+        if self.position_known not in list(open_path_data.keys()):
+            scan_data = self.drive.detect_lines(self.direction_known)
+            self.direction_known = self.quantize_direction(scan_data[0])
+            detected_paths = scan_data[1]
+            self.planet.add_detected_paths(self.position_known, detected_paths)
+            print("ADDED")
+        print("coord: {}, detected: {}".format(self.position_known, self.planet.get_open_paths().get(self.position_known)))
 
     # prints all saved paths
     def show_all_paths(self):
         self.planet.print_paths()
 
     # turns to a given direction according to starting direction
-    def turn_to_direction(self, direction):
+    def turn_to_direction(self, new_direction):
         old_direction = self.direction_known
         # how far to turn
-        degrees = (direction - old_direction) % 360
+        degrees = (new_direction - old_direction) % 360
         # turn that far
         self.drive.turn_by_degree(degrees)
-
+        self.direction_known = new_direction
+        print("New direction is: {}".format(self.direction_known))
 
     # resets the direction according to the current rotation value
     def quantize_direction(self, rotation):
@@ -109,9 +135,8 @@ class Explorer:
         else:
             return -1
 
-    # resets the direction according to the current rotation value
+    # converts the direction to the preset IntEnum values
     def convert_direction(self, rotation):
-        # NORTH
         if rotation == 0:
             return Direction.NORTH
         elif rotation == 90:
@@ -126,8 +151,11 @@ class Explorer:
 
     def test_paths(self):
         self.planet.add_path(((0, 0), Direction.NORTH), ((1, 1), Direction.SOUTH), 1)
+        self.planet.add_path(((0, 0), Direction.NORTH), ((1, 1), Direction.SOUTH), 1)
         self.planet.add_path(((2, 3), Direction.WEST), ((1, 1), Direction.NORTH), 2)
         self.planet.add_path(((2, 3), Direction.SOUTH), ((0, 0), Direction.WEST), 3)
+        self.planet.add_path(((5, 6), Direction.WEST), ((7, 7), Direction.EAST), 4)
+        self.planet.add_path(((7, 7), Direction.EAST), ((5, 6), Direction.WEST), 4)
         self.planet.print_paths()
         print("############")
         self.planet.get_paths()

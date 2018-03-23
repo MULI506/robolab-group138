@@ -13,7 +13,7 @@ class Odometry():
 
         # setup wheel diameter and wheel separation
         self.wheel_dia = 55
-        self.wheel_axis = 105  #measured middle: 120mm, 105-110 better
+        self.wheel_axis = 100  #measured middle: 120mm, 105-110 better
         # calculate how far the wheel moves each degree
         self.step_distance = self.wheel_dia * math.pi / 360
 
@@ -75,8 +75,8 @@ class Odometry():
         # COORDINATE
         # distance between nodes in mm
         grid_size = 500
-        x_change_grid = round(self.current_position[0] / grid_size)
-        y_change_grid = round(self.current_position[1] / grid_size)
+        x_change_grid = - round(self.current_position[1] / grid_size)
+        y_change_grid = round(self.current_position[0] / grid_size)
 
         #print("x_change: {}, y_change: {}".format(x_change_grid, y_change_grid))
 

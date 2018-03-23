@@ -82,8 +82,13 @@ class Explorer:
     def show_all_paths(self):
         self.planet.print_paths()
 
-    #def turn_to_direction(self, direction):
-    #    pass
+    # turns to a given direction according to starting direction
+    def turn_to_direction(self, direction):
+        old_direction = self.direction_known
+        # how far to turn
+        degrees = (direction - old_direction) % 360
+        # turn that far
+        self.drive.turn_by_degree(degrees)
 
 
     # resets the direction according to the current rotation value

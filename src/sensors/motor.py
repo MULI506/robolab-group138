@@ -1,5 +1,5 @@
 import ev3dev.ev3 as ev3
-
+import math
 
 class Motor:
 
@@ -63,6 +63,33 @@ class Motor:
     def move_lr_steady(self, speed_left, speed_right):
         self.motor_left.run_forever(speed_sp=speed_left)
         self.motor_right.run_forever(speed_sp=speed_right)
+
+    # turns robot by a set amount of degree
+    def turn_degree(self, degree):
+        # convert degree to change in motor position
+        wheel_dia = 55
+        # distance for each degree of a wheel
+        step_distance = wheel_dia * math.pi / 360
+        wheel_axis = 120
+        # calculates necessary distance of each wheel according to given degree
+        turn_distance = wheel_axis * math.pi / 4 * (degree / 90)
+        # calculates necessary position of the wheel
+        rel_motor_position = turn_distance // step_distance
+        # sets motor position to 0
+        self.reset_position()
+        # starts to turn robot
+        self.move_lr_steady(-200, 200)
+        # stops, after target motor position is reached
+        while self.motor_right.position < rel_motor_position:
+            continue
+        self.stop()
+
+        """"
+        self.motor_left.duty_cycle_sp = 20
+        self.motor_right.duty_cycle_sp = 20
+        self.motor_left.run_to_rel_pos(position_sp=-rel_motor_position, stop_action='brake')
+        self.motor_right.run_to_rel_pos(position_sp=rel_motor_position, stop_action='brake')
+        """
 
     def wait(self):
         self.motor_left.wait_while('running')

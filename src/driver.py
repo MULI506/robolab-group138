@@ -27,9 +27,9 @@ class Driver:
 
     # moves the axis from line to the node
     def move_on_node(self):
-        # robot has to move 6cm forward - about 125 degree per wheel
+        # robot has to move 6cm forward - about 150 degree per wheel
         time = 1000
-        speed = 130
+        speed = 150
         self.motor_control.forward(time, speed)
 
     def full_rotation(self):
@@ -75,6 +75,9 @@ class Driver:
                 self.stop_robot()
                 break
 
+    # turns the robot by a set amount of degree
+    def turn_by_degree(self, degree):
+        self.motor_control.turn_degree(degree)
 
     # p controller returns modifier for speed reduction during turns
     def p_control(self, brightness):
@@ -369,11 +372,12 @@ class Driver:
         self.position_current = new_position[0]
         self.rotation_current = self.odo.get_current_rotation()
         direction_guess = new_position[1]
-        print("rotation: measured {}, guessed {}".format(self.rotation_current, direction_guess))
-        time.sleep(1)
+        position_result = (new_position, self.rotation_current)
+
+        print("rotation: measured {}, guessed {}".format(int(self.rotation_current), self.odo.guess_direction(direction_guess)))
+        time.sleep(0.05)
         self.move_on_node()
-        time.sleep(2)
-        self.detect_lines(self.rotation_current)
+        return position_result
 
     # turns on the spot at a node and returns detected lines
     # return values (new_direction, found_lines)

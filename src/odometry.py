@@ -13,7 +13,7 @@ class Odometry():
 
         # setup wheel diameter and wheel separation
         self.wheel_dia = 55
-        self.wheel_axis = 100  #measured middle: 120mm, 105-110 better
+        self.wheel_axis = 105  #measured middle: 120mm, 105-110 better
         # calculate how far the wheel moves each degree
         self.step_distance = self.wheel_dia * math.pi / 360
 
@@ -78,7 +78,7 @@ class Odometry():
         x_change_grid = round(self.current_position[0] / grid_size)
         y_change_grid = round(self.current_position[1] / grid_size)
 
-        print("x_change: {}, y_change: {}".format(x_change_grid, y_change_grid))
+        #print("x_change: {}, y_change: {}".format(x_change_grid, y_change_grid))
 
         # coordinate changes added to old coordinates
         x_guess = coordinate_old[0] + x_change_grid
@@ -88,7 +88,7 @@ class Odometry():
         print("old_c: {}, guess_c: {}".format(coordinate_old, coordinate_guess))
 
         # ROTATION
-        rot_guess = self.guess_direction(self.current_rotation)
+        rot_guess = self.current_rotation
         #print("rotation: measured {}, guessed {}".format(int(self.current_rotation), rot_guess))
 
         position_guess = (coordinate_guess, rot_guess)

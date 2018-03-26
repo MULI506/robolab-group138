@@ -26,6 +26,7 @@ class Explorer:
     def __init__(self):
         self.drive = Driver()
         self.planet = Planet()
+        self.sounds = Sounds()
 
         self.position_known = (0, 0)
         self.direction_known = 0
@@ -33,8 +34,22 @@ class Explorer:
     # complete exploration_process
     def explore_offline(self):
         self.start_exploration(False)
-        self.follow_path_add()
-        self.show_all_paths()
+        while True:
+            self.show_all_paths()
+            self.show_all_detected()
+            node_status = self.check_node_paths(self.position_known)
+            if node_status == 'explored':
+                path_to_explore = self.search_unexplored_node()
+                if path_to_explore == 'finished':
+                    self.sounds.victory()
+                    return
+                self.follow_path_to_target(path_to_explore)
+                continue
+            else:
+                self.turn_to_direction(node_status)
+                self.follow_path_add()
+                self.scan_paths()
+
 
     # enters planet and sets initial coordinate
     def start_exploration(self, online):
@@ -90,6 +105,9 @@ class Explorer:
         # adds the path to the data structure
         self.planet.add_path((self.position_known, self.convert_to_direction(self.direction_known)),
                              (new_coordinate, self.convert_to_direction(direction_arrived)), weight)
+
+        # sets the driven path to explored
+        self.planet.close_open_path(self.position_known, (self.direction_known))
         # set current known position and direction to new values
         self.position_known = new_coordinate
         self.direction_known = new_direction
@@ -98,8 +116,10 @@ class Explorer:
     def scan_paths(self):
         # get data for available paths
         open_path_data = self.planet.get_open_paths()
+        arrived_from = (self.direction_known + 180) % 360
         # check if coordinate is already saved
         if self.position_known not in list(open_path_data.keys()):
+
             # if it's not saved, scan the node for paths
             scan_data = self.drive.detect_lines(self.direction_known)
             # set current direction to the final direction after scan
@@ -109,7 +129,10 @@ class Explorer:
             # adds scanned paths to data structure
             self.planet.add_detected_paths(self.position_known, detected_paths)
             print("ADDED")
-        print("coord: {}, detected: {}".format(self.position_known, self.planet.get_open_paths().get(self.position_known)))
+        self.planet.close_open_path(self.position_known, arrived_from)
+
+        print("coord: {}, adjusted: {}".format(self.position_known,
+                                                             self.planet.get_open_paths().get(self.position_known)))
 
     # checks, if there is an unexplored path at the current position
     def check_node_paths(self, position):
@@ -146,7 +169,7 @@ class Explorer:
         used_coordinates.append(self.position_known)
         while True:
             if not coordinate_queue:
-                return "no more paths to explore"
+                return 'finished'
             coordinate = coordinate_queue.pop(0)
             outgoing_paths = path_data.get(coordinate)
             for path in outgoing_paths:
@@ -171,7 +194,25 @@ class Explorer:
             #print("queue: {}, outgoing_paths: {}".format(coordinate_queue, outgoing_paths))
             #print("coord links: {}".format(coordinate_links))
 
-    def follow_path_to_target():
+    # follow a path to a target coordinate
+    def follow_path_to_target(self, path):
+        # given path
+        path_to = path
+        print(path_to)
+        while True:
+            # take the first path value and remove it from the path-list (coordinate, direction)
+            go_to = path_to.pop(0)
+            # get the direction from the current coordinate
+            direction = go_to[1]
+            print("goto: {}, direction: {}".format(go_to, direction))
+            # turn to that direction
+            self.turn_to_direction(direction)
+            # follow the current path
+            self.follow_path_add()
+            time.sleep(0.5)
+            # if there is no more path to follow / target is reached: end
+            if not path_to:
+                break
 
     # prints all saved paths
     def show_all_paths(self):
@@ -207,6 +248,23 @@ class Explorer:
         elif 225 <= rotation < 315:
             return 270
         # ERROR
+        else:
+            return -1
+
+    # returns the index for the given direction
+    def direction_index(self, direction):
+        # NORTH
+        if direction == 0:
+            return 0
+        # WEST
+        elif direction == 90:
+            return 1
+        # SOUTH
+        elif direction == 180:
+            return 2
+        # EAST
+        elif direction == 270:
+            return 3
         else:
             return -1
 

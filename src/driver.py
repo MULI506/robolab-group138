@@ -60,9 +60,7 @@ class Driver:
 
     # turns the robot on the spot - about 180°
     def turn_around(self):
-        time_r = 1000
-        speed = 360
-        self.motor_control.move_left_right(time_r, -speed, speed)
+        self.turn_by_degree(170)
         self.motor_control.wait()
 
     def stop_robot(self):
@@ -225,7 +223,6 @@ class Driver:
             brightness = self.color_sensor.get_color()
             # initiates end after almost whole rotation
             if rotation_turned > 320:
-                print("ENDING")
                 # continues odometry in the white
                 while brightness > 150:
                     self.odometry_step()
@@ -248,7 +245,7 @@ class Driver:
                                                                       found_lines[2],
                                                                       found_lines[3]))
         # resets wheel separation for path-following
-        self.odo.set_axis_separation(100)
+        self.odo.reset_axis_separation()
         self.hug_line()
         # creates return value using final rotation and list of found lines
         result = (int(rotation_end), found_lines)

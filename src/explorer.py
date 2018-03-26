@@ -33,18 +33,24 @@ class Explorer:
 
     # complete exploration_process
     def explore_offline(self):
+        # start exploration, drive to first node
         self.start_exploration(False)
         while True:
-            self.show_all_paths()
-            self.show_all_detected()
+            # check, if current node has unexplored paths
             node_status = self.check_node_paths(self.position_known)
+            # if all paths are explored
             if node_status == 'explored':
+                # a list of paths to a node with unexplored paths (BFS)
                 path_to_explore = self.search_unexplored_node()
+                # if no node has unexplored paths, the whole planet is explored
                 if path_to_explore == 'finished':
+                    # shows
                     self.sounds.victory()
                     return
+                # move to the node with unexplored paths
                 self.follow_path_to_target(path_to_explore)
                 continue
+            # if current node has unexplored paths, turn to that direction, follow the path and scan the new node
             else:
                 self.turn_to_direction(node_status)
                 self.follow_path_add()
@@ -128,7 +134,6 @@ class Explorer:
             detected_paths = scan_data[1]
             # adds scanned paths to data structure
             self.planet.add_detected_paths(self.position_known, detected_paths)
-            print("ADDED")
         self.planet.close_open_path(self.position_known, arrived_from)
 
         print("coord: {}, adjusted: {}".format(self.position_known,
@@ -161,34 +166,56 @@ class Explorer:
     # return format: List[((x1,y1, direction1), ((x2,y2), direction2), ((x3,y3, direction3), ...]
     # Breadth First Search
     def search_unexplored_node(self):
+        # currently saved path data
         path_data = self.planet.get_path_data()
+        # list of coordinates to be used
         coordinate_queue = []
+        # list of coordinates already used
         used_coordinates = []
+        # link between coordinates, used to create the path between nodes in the end
         coordinate_links = []
+        # add the current position
         coordinate_queue.append(self.position_known)
         used_coordinates.append(self.position_known)
         while True:
+            # if no coordinate is
             if not coordinate_queue:
                 return 'finished'
+            # take the first coordinate of the list
             coordinate = coordinate_queue.pop(0)
+            # get all paths from that coordinate
             outgoing_paths = path_data.get(coordinate)
+            # for every outgoing path
             for path in outgoing_paths:
+                # if the end of the path (coordinate) hasn't been used yet
                 if path[2] not in used_coordinates:
+                    # add the coordinate
                     coordinate_queue.append(path[2])
                     used_coordinates.append(path[2])
+                    # add a link between the current and next coordinate using coordinates and directions
                     coordinate_links.append([path[0], self.convert_from_direction(path[1]),
                                             path[2], self.convert_from_direction(path[3])])
+                    # if a node with unexplored paths is found
                     if self.check_node_paths(path[2]) is not 'explored':
+                        # use that path as target
                         found = path[2]
                         target = path[2]
+                        # create empty list for the paths from start to finish
                         path_result = []
+                        # create the whole path list
                         while True:
+                            # check the coordinate links for the current target
                             for link in coordinate_links:
+                                # if the target is found as link-target
                                 if link[2] == target:
+                                    # the link-start coordinate and direction are added in front of the whole path list
                                     path_result.insert(0, (link[0], link[1]))
+                                    # set the added coordinate as new target
                                     target = link[0]
+                                    # if target has reached the current position, the list is complete
                                     if target == self.position_known:
                                         print("from:{} to:{} path:{}".format(self.position_known, found, path_result))
+                                        # return the list
                                         return path_result
                                     break
             #print("queue: {}, outgoing_paths: {}".format(coordinate_queue, outgoing_paths))
@@ -230,7 +257,7 @@ class Explorer:
         # turn that far
         self.drive.turn_by_degree(degrees)
         self.drive.hug_line()
-        self.direction_known = new_direction
+        self.direction_known = int(new_direction)
         print("New direction is: {}".format(self.direction_known))
 
     # resets the direction according to the current rotation value

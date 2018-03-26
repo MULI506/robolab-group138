@@ -13,7 +13,7 @@ class Odometry():
 
         # setup wheel diameter and wheel separation
         self.wheel_dia = 55
-        self.wheel_axis = 100  #measured middle: 120mm, 105-110 better
+        self.wheel_axis = 110  #measured middle: 120mm, 105-110 better
         # calculate how far the wheel moves each degree
         self.step_distance = self.wheel_dia * math.pi / 360
 
@@ -34,6 +34,9 @@ class Odometry():
 
     def set_axis_separation(self, length):
         self.wheel_axis = length
+
+    def reset_axis_separation(self):
+        self.wheel_axis = 110
 
     # keep the rotation between 0 and 360 degrees
     def limit_rotation_degree(self, rot_deg):

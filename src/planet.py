@@ -141,6 +141,10 @@ class Planet:
     def get_open_paths(self):
         return self.open_paths
 
+    # returns data for all saved paths
+    def get_path_data(self):
+        return self.path_data
+
     # sets a direction at a coordinate to false, which marks it as explored
     def close_open_path(self, coordinate, direction):
         # sets correct index value for the current direction

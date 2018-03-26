@@ -88,8 +88,8 @@ class Explorer:
         print("NEW: coordinate: {}, direction: {}, direction arrived: {}, path status: {}".format(new_coordinate, new_direction, direction_arrived, path_status))
 
         # adds the path to the data structure
-        self.planet.add_path((self.position_known, self.convert_direction(self.direction_known)),
-                             (new_coordinate, self.convert_direction(direction_arrived)), weight)
+        self.planet.add_path((self.position_known, self.convert_to_direction(self.direction_known)),
+                             (new_coordinate, self.convert_to_direction(direction_arrived)), weight)
         # set current known position and direction to new values
         self.position_known = new_coordinate
         self.direction_known = new_direction
@@ -110,6 +110,49 @@ class Explorer:
             self.planet.add_detected_paths(self.position_known, detected_paths)
             print("ADDED")
         print("coord: {}, detected: {}".format(self.position_known, self.planet.get_open_paths().get(self.position_known)))
+
+    # checks, if there is an unexplored path at the current position
+    def check_node_paths(self, position):
+        # list of unexplored outgoing paths for this node
+        current_node = self.planet.get_open_paths().get(position)
+        # if a path is unexplored, return the direction
+        if True in current_node:
+            direction_index = current_node.index(True)
+            # NORTH
+            if direction_index == 0:
+                return 0
+            # WEST
+            elif direction_index == 1:
+                return 90
+            # SOUTH
+            elif direction_index == 2:
+                return 180
+            # EAST
+            elif direction_index == 3:
+                return 270
+        # if there is no unexplored path
+        else:
+            return 'explored'
+
+    # looks for node with unexplored paths and returns the path to the node
+    # Breadth First Search
+    def search_unexplored_node(self):
+        path_data = self.planet.get_path_data()
+        path_list = []
+        coordinate_queue = []
+        coordinate_queue.append(self.position_known)
+        while True:
+            coordinate = coordinate_queue.pop(0)
+            outgoing_paths = path_data.get(coordinate)
+            for path in outgoing_paths:
+                coordinate_queue.append(path[2])
+            print("queue: {}, outgoing_paths: {}".format(coordinate_queue, outgoing_paths))
+            if self.check_node_paths(coordinate) is not 'explored':
+                break
+            time.sleep(1)
+        return path_to_node
+
+    # def follow_path_to_target():
 
     # prints all saved paths
     def show_all_paths(self):
@@ -148,7 +191,7 @@ class Explorer:
             return -1
 
     # converts the direction to the preset IntEnum values
-    def convert_direction(self, rotation):
+    def convert_to_direction(self, rotation):
         if rotation == 0:
             return Direction.NORTH
         elif rotation == 90:
@@ -157,6 +200,19 @@ class Explorer:
             return Direction.SOUTH
         elif rotation == 270:
             return Direction.EAST
+        else:
+            return 'ERROR'
+
+    # converts the direction from the preset IntEnum values
+    def convert_from_direction(self, direction):
+        if direction == Direction.NORTH:
+            return 0
+        elif direction == Direction.WEST:
+            return 90
+        elif direction == Direction.SOUTH:
+            return 180
+        elif direction == Direction.EAST:
+            return 270
         else:
             return 'ERROR'
 
@@ -171,3 +227,4 @@ class Explorer:
         self.planet.print_paths()
         print("############")
         self.planet.get_paths()
+

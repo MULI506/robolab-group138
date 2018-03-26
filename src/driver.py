@@ -172,6 +172,7 @@ class Driver:
                     self.motor_control.stop()
                     self.sounds.say_obstacle()
                     self.turn_around()
+                    self.odo.set_current_rotation = self.odo.limit_rotation_degree(self.odo.get_current_rotation() + 180)
                     self.path_status = 'blocked'
                 self.odometry_step()
                 # control motors and set speeds

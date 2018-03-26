@@ -135,24 +135,43 @@ class Explorer:
             return 'explored'
 
     # looks for node with unexplored paths and returns the path to the node
+    # return format: List[((x1,y1, direction1), ((x2,y2), direction2), ((x3,y3, direction3), ...]
     # Breadth First Search
     def search_unexplored_node(self):
         path_data = self.planet.get_path_data()
-        path_list = []
         coordinate_queue = []
+        used_coordinates = []
+        coordinate_links = []
         coordinate_queue.append(self.position_known)
+        used_coordinates.append(self.position_known)
         while True:
+            if not coordinate_queue:
+                return "no more paths to explore"
             coordinate = coordinate_queue.pop(0)
             outgoing_paths = path_data.get(coordinate)
             for path in outgoing_paths:
-                coordinate_queue.append(path[2])
-            print("queue: {}, outgoing_paths: {}".format(coordinate_queue, outgoing_paths))
-            if self.check_node_paths(coordinate) is not 'explored':
-                break
-            time.sleep(1)
-        return path_to_node
+                if path[2] not in used_coordinates:
+                    coordinate_queue.append(path[2])
+                    used_coordinates.append(path[2])
+                    coordinate_links.append([path[0], self.convert_from_direction(path[1]),
+                                            path[2], self.convert_from_direction(path[3])])
+                    if self.check_node_paths(path[2]) is not 'explored':
+                        found = path[2]
+                        target = path[2]
+                        path_result = []
+                        while True:
+                            for link in coordinate_links:
+                                if link[2] == target:
+                                    path_result.insert(0, (link[0], link[1]))
+                                    target = link[0]
+                                    if target == self.position_known:
+                                        print("from:{} to:{} path:{}".format(self.position_known, found, path_result))
+                                        return path_result
+                                    break
+            #print("queue: {}, outgoing_paths: {}".format(coordinate_queue, outgoing_paths))
+            #print("coord links: {}".format(coordinate_links))
 
-    # def follow_path_to_target():
+    def follow_path_to_target():
 
     # prints all saved paths
     def show_all_paths(self):
@@ -169,6 +188,7 @@ class Explorer:
         degrees = (new_direction - old_direction) % 360
         # turn that far
         self.drive.turn_by_degree(degrees)
+        self.drive.hug_line()
         self.direction_known = new_direction
         print("New direction is: {}".format(self.direction_known))
 

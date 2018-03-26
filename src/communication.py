@@ -3,8 +3,6 @@
 # Suggestion: Do not import the ev3dev.ev3 module in this file
 import time
 
-import self as self
-
 
 class Communication:
     """
@@ -43,10 +41,10 @@ class Communication:
         client.loop_start()
         while True :
             self.send_message('explorer/138', "SYN ready")
-            time.sleep(10)
+            time.sleep(30)
             self.on_message(client, data, message)
              # decodes message and creates variable
-            msg = message.payload
+            msg = message.payload.decode('utf-8')
                 # separates message
             msg.split(" ")
                 # assigns message parts variables
@@ -54,65 +52,84 @@ class Communication:
             int_coord.split(",")
             x, y =int_coord.split(",")
             coordinates =(int(x), int(y))
-
-
+            return coordinates
              # %s makes planet_name part of message
-            self.client.subscribe('planet/%s', qos=1) % planet_name
             #takes submitted location and sets it as starting place
             current_position = int_coord
+            self.client.subscribe('planet/%s', qos=1 % (planet_name))
             if time.time() > time_since_received + duration : #triggers after two seconds without new message
                     break
         client.loop_stop()
         client.disconnect()
-        #need to set up lists still
-    def node(self):
+    def node(self,xn,yn,dn,xs,ys,ds): # n-new p-previous
         self.username_password_set('138', password='')
         self.connect('robolab.info.tu-dresden.de', port=8883)
-        self.subscribe('planet/%s', qos=1) % planet_name #already subbed to topic so line shouldn't be needed
         client.loop_start()
         while True :
+                target_list = []
+                path_list = []
+                combined_list = []
+
+                cur_pos = [str(xn), str(yn), dn]
+                prev_pos = [str(xs), str(ys), ds]
+                c_p = ','.join(cur_pos)
+                p_p = ','.join(prev_pos)
         #checks status of path
-                if current_position = previous_position
-                    self.send_message('planet/%s', "SYN path,previous_position,current_position,De blocked") % planet_name
+                if cur_pos == prev_pos:
+                    self.send_message('planet/%s' % (planet_name), "SYN path ,%s , %s,  blocked" % (p_p, c_p))
                     time.sleep(10)
                 else:
-                    self.send_message('planet/%s', "SYN path,previous_position,Ds,current_position,De free") % planet_name
-                    coordinate_list.append(current_position)
+                    self.send_message('planet/%s' % (planet_name), "SYN path, %s, %s free" % (p_p, c_p))
+                    coordinate_list.append(cur_pos)
                     time.sleep(10)
             self.on_message(client, data, message)
             if time.time() > time_since_received + duration:
                 break
-            node_msg = message.payload
-            if len(nod_msg) < 20 #there probably is a more elegant solution to this
+            node_msg = message.payload.decode('utf-8')
+            if len(nod_msg) < 20 : #there probably is a more elegant solution to this
                 node_msg.split(" ")
-                ack, trigger, target = node_msg.split(" ")
-                    if path_to_target in path_list #<-- not a thing yet
-                        '''move to target'''
-                    else '''save target'''
-            else:
-                a,pa,target,new_coord1,new_coord2,stat,wei = node_msg.split(" ") #rename variables later # ACK Path target (x,y,d) (x,y,d) free/blocked weight
-                xn,yn,d = new_coord1.split(",")
-                xnn,ynn,dn = new_coord2.split(",") #again, renaming them later
-                received_path = (int(xn), int(yn), d, int(xnn),int(ynn),dn)
-                add_path #the received one
+                ack, trigger, received_target = node_msg.split(" ")
+                xt, yt = received_target.split(",")
+                target = (int(xt), int(yt))
+                target_list.append(target)
+                combined_list.append(target_list)
+
+            else :
+                a,pa,new_coord1,new_coord2,stat,weight = node_msg.split(" ") #rename variables later # ACK Path  (x,y,d) (x,y,d) free/blocked weight
+                xr,yr,dr = new_coord1.split(",")
+                xnn,ynn,dnn = new_coord2.split(",") #again, renaming them later
+                # covers first message with corrected coordinates
+                if  prev_pos == new_coord1:
+                        cur_pos = new_coord2
+                #all received paths into list
+                received_path = (int(xr), int(yr), dr, int(xnn),int(ynn),dnn, int(weight))
+                path_list.append(received_path)
+                combined_list.append(path_list)
 
 
     #if target = current_position
     def target_reached(self): #incomplete
         self.username_password_set('138', password='')
         self.connect('robolab.info.tu-dresden.de', port=8883)
-        self.subscribe('explorer/138', qos=1)
         client.loop_start()
+        while True :
             self.send_message('explorer/138' "SYN target reached")
+            send_time = time.time()
+            if time.time() > send_time + 2 :
+                break
         client.loop_stop()
         client.disconnect()
     #no paths left
     def explore_com(self):
         self.username_password_set('138', password='')
         self.connect('robolab.info.tu-dresden.de', port=8883)
-        self.subscribe('planet/%s', qos=1)
+        self.subscribe('explorer/138', qos=1)
         client.loop_start()
+        while True :
             self.send_message('explorer/138' "SYN exploration completed!")
+            send_time = time.time()
+            if time.time() > send_time + 2 :
+                break
         client.loop_stop()
         client.disconnect()
 

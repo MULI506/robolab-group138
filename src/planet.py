@@ -64,8 +64,10 @@ class Planet:
         if not self.check_path_known(start_position, start_direction):
             # adds path from start to end
             self.path_data[start_position].append([start_position, start_direction, end_position, end_direction, weight])
-            # adds path from end to start
-            self.path_data[end_position].append([end_position, end_direction, start_position, start_direction, weight])
+            # if the path is blocked, just add one path to the same node
+            if weight is not -1:
+                # adds path from end to start
+                self.path_data[end_position].append([end_position, end_direction, start_position, start_direction, weight])
 
 
     def get_paths(self) -> Dict[Tuple[int, int], Dict[Direction, Tuple[Tuple[int, int], Direction, Weight]]]:

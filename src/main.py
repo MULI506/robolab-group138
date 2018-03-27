@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
-import ev3dev.ev3 as ev3
 import uuid
 import paho.mqtt.client as mqtt
-from planet import Direction, Planet
-from communication import Communication
+
+from explorer import *
+from driver import *
+from sensors.colorsensor import *
+from sounds import *
+#from communication import *
 
 client = None # DO NOT EDIT
 
@@ -19,6 +22,14 @@ def run():
     # the execution of all code shall be started from within this function
     # ADD YOUR OWN IMPLEMENTATION HEREAFTER
     print("Hello World!")
+
+    # main control class/object for exploration
+    exp = Explorer()
+    # start whole exploration process without communication
+    exp.explore_offline()
+    # print all detected paths
+    exp.show_all_paths()
+
 
 
 # DO NOT EDIT

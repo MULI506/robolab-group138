@@ -88,7 +88,7 @@ class Odometry():
         y_guess = coordinate_old[1] + y_change_grid
         # new coordinates as tuple
         coordinate_guess = (x_guess, y_guess)
-        print("old_c: {}, guess_c: {}".format(coordinate_old, coordinate_guess))
+        #print("old_c: {}, guess_c: {}".format(coordinate_old, coordinate_guess))
 
         # ROTATION
         rot_guess = self.current_rotation

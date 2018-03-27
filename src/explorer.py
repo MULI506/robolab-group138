@@ -17,7 +17,8 @@ driver -> motor
 driver <- colorsensor
 driver <- ursensor
 
-driver <- sounds
+
+driver, explorer <- sounds
 """""
 
 
@@ -44,8 +45,8 @@ class Explorer:
                 path_to_explore = self.search_unexplored_node()
                 # if no node has unexplored paths, the whole planet is explored
                 if path_to_explore == 'finished':
-                    # shows
-                    self.sounds.victory()
+                    print("Send Message: SYN exploration complete!")
+                    self.sounds.sound_shutdown()
                     return
                 # move to the node with unexplored paths
                 self.follow_path_to_target(path_to_explore)
@@ -62,6 +63,7 @@ class Explorer:
         self.drive.follow_line_complete((0, 0), 0)
         # sets first position
         # if online-mode, connect to server and get first position, otherwise set to (0,0)
+        print("Send Message: SYN READY")
         if online:
             """"
             # COMMUNICATE WITH SERVER AND GET COORDINATE
@@ -85,7 +87,7 @@ class Explorer:
         # ignores the entry path to the planet, sets found path in South to False
         detected_lines[2] = False
         self.planet.add_detected_paths(self.position_known, detected_lines)
-        print("Starting Position: {}, Current Rotation: {}".format(self.position_known, self.direction_known))
+        #print("Starting Position: {}, Current Rotation: {}".format(self.position_known, self.direction_known))
 
     # follows a path from start to finish and adds the path to the path data
     def follow_path_add(self):
@@ -106,9 +108,13 @@ class Explorer:
 
         # calculates direction, where the robot came from
         direction_arrived = (new_direction + 180) % 360
-        print("NEW: coordinate: {}, direction: {}, direction arrived: {}, path status: {}".format(new_coordinate, new_direction, direction_arrived, path_status))
+        #print("FOLLOWED PATH: coordinate: {}, direction: {}, direction arrived: {}, path status: {}".format(new_coordinate, new_direction, direction_arrived, path_status))
 
         # adds the path to the data structure
+        print("Path Explored: Send Message: SYN path {},{},{} {},{},{} {}".format(self.position_known[0], self.position_known[1],
+                                                                                  self.direction_to_letter(self.direction_known),
+                                                                                  new_coordinate[0], new_coordinate[1],
+                                                                                  self.direction_to_letter(direction_arrived), path_status))
         self.planet.add_path((self.position_known, self.convert_to_direction(self.direction_known)),
                              (new_coordinate, self.convert_to_direction(direction_arrived)), weight)
 
@@ -136,8 +142,8 @@ class Explorer:
             self.planet.add_detected_paths(self.position_known, detected_paths)
         self.planet.close_open_path(self.position_known, arrived_from)
 
-        print("coord: {}, adjusted: {}".format(self.position_known,
-                                                             self.planet.get_open_paths().get(self.position_known)))
+        #print("OUTGOING PATHS: coord: {}, adjusted: {}".format(self.position_known,
+                                                             #self.planet.get_open_paths().get(self.position_known)))
 
     # checks, if there is an unexplored path at the current position
     def check_node_paths(self, position):
@@ -214,7 +220,7 @@ class Explorer:
                                     target = link[0]
                                     # if target has reached the current position, the list is complete
                                     if target == self.position_known:
-                                        print("from:{} to:{} path:{}".format(self.position_known, found, path_result))
+                                        #print("TARGET PATH: from:{} to:{} path:{}".format(self.position_known, found, path_result))
                                         # return the list
                                         return path_result
                                     break
@@ -225,13 +231,13 @@ class Explorer:
     def follow_path_to_target(self, path):
         # given path
         path_to = path
-        print(path_to)
+        #print(path_to)
         while True:
             # take the first path value and remove it from the path-list (coordinate, direction)
             go_to = path_to.pop(0)
             # get the direction from the current coordinate
             direction = go_to[1]
-            print("goto: {}, direction: {}".format(go_to, direction))
+            #print("PATH TO: goto: {}, direction: {}".format(go_to, direction))
             # turn to that direction
             self.turn_to_direction(direction)
             # follow the current path
@@ -258,7 +264,7 @@ class Explorer:
         self.drive.turn_by_degree(degrees)
         self.drive.hug_line()
         self.direction_known = int(new_direction)
-        print("New direction is: {}".format(self.direction_known))
+        #print("TURNING: New direction is {}".format(self.direction_known))
 
     # resets the direction according to the current rotation value
     def quantize_direction(self, rotation):
@@ -320,6 +326,16 @@ class Explorer:
             return 270
         else:
             return 'ERROR'
+
+    def direction_to_letter(self, direction):
+        if direction == 0:
+            return 'N'
+        elif direction == 90:
+            return 'W'
+        elif direction == 180:
+            return 'S'
+        else:
+            return 'E'
 
     # test function for path saving and output
     def test_paths(self):

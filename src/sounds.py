@@ -38,6 +38,15 @@ class Sounds:
     def victory(self):
         self.sounds.play_song((('F3', 'q'), ('A3', 'q'), ('C4', 'q'), ('F4', 'h'), )).wait()
 
+    def sound_obstacle(self):
+        self.sounds.play("/home/robot/src/src/zonk.wav").wait()
+
+    def sound_startup(self):
+        self.sounds.play("/home/robot/src/src/startup.wav").wait()
+
+    def sound_shutdown(self):
+        self.sounds.play("/home/robot/src/src/shutdown.wav").wait()
+
     def say_coordinate(self, position, direction):
         position_x = position[0]
         position_y = position[1]
